@@ -7,13 +7,13 @@ const app = express();
 const PORT = 3000;
 
 const userController = require("./src/controller/userController");
-
+const ticketController = require("./src/controller/ticketController");
 
 app.use(loggerMiddleware);
 app.use(express.json());
 
 app.use('/', userController);
-
+app.use('/tickets', ticketController);
 
 function loggerMiddleware(req, res, next){
     logger.info(`Incoming ${req.method} : ${req.url}`);
