@@ -1,0 +1,34 @@
+{
+  "name": "ticketingsystem",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/luciaonica/TicketingSystem#readme",
+  "bugs": {
+    "url": "https://github.com/luciaonica/TicketingSystem/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luciaonica/TicketingSystem.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.767.0",
+    "@aws-sdk/lib-dynamodb": "^3.767.0",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9"
+  }
+}
