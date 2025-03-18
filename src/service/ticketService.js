@@ -25,4 +25,37 @@ async function createTicket(ticket) {
     }     
 }
 
-module.exports = { createTicket }
+async function getPendingTickets(user) {    
+
+    try {
+        const tickets = await ticketDAO.getTicketsByStatus("Pending");
+        logger.info(`Service: Retrieved ${tickets.length} pending tickets`);
+        return tickets;
+    } catch (err) {
+        logger.error(`Error in getPendingTickets: ${err.message}`);
+        throw err;
+    }
+}
+
+async function processTicket(ticket_id, status, resolver) {
+    try {
+        const ticket = await ticketDAO.getTicketById(ticket_id);        
+
+        if (!ticket) {
+            throw new Error("Ticket not found");
+        }
+
+        if (ticket.status !== "Pending") {
+            throw new Error("Ticket already processed");
+        }
+
+        const updatedTicket = await ticketDAO.updateTicket(ticket_id, status, resolver);
+
+        return updatedTicket;
+    } catch (err) {
+        logger.error(`Error processing ticket ${ticket_id}: ${err.message}`);
+        throw err;
+    }
+}
+
+module.exports = { createTicket, getPendingTickets, processTicket }
