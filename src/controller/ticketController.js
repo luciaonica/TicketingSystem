@@ -38,6 +38,9 @@ router.put("/:id", authenticateToken, authorizeRole(["Manager"]), async (req, re
 
     try {
         const ticket = await ticketService.processTicket(ticket_id, status, resolver);
+        if (!ticket) {
+            return res.status(404).json({ error: "Ticket not found" });
+        }
         res.status(200).json(ticket);
     } catch (err) {
         logger.error(`Error processing ticket ${ticket_id}: ${err.message}`);
@@ -45,13 +48,19 @@ router.put("/:id", authenticateToken, authorizeRole(["Manager"]), async (req, re
             return res.status(404).json({ error: "Ticket not found" });
         }
 
-        if (err.message.includes("already processed")) {
-            return res.status(409).json({ error: "Ticket already processed" });
-        }
-
         res.status(400).json({ error: err.message });
     }
-})
+});
+
+router.get("/", authenticateToken, async (req, res) => {
+    try {
+        const tickets = await ticketService.getAllTickets(req.user);
+        res.status(200).json(tickets);
+    } catch (err) {
+        logger.error(`Error retrieving tickets: ${err.message}`);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 function authorizeRole(allowedRoles) {
     return (req, res, next) => {
@@ -65,10 +74,10 @@ function authorizeRole(allowedRoles) {
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.sendStatus(401);
+    if (!token) return res.status(401).json({ error: "Access denied. No token provided." });
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) return res.status(401).json({ error: "Invalid or expired token." });
         req.user = user;
         next();
     })

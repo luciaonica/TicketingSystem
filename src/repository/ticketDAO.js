@@ -57,7 +57,7 @@ async function updateTicket(ticket_id, status, resolver) {
         const { Attributes } = await documentClient.send(command);
 
         if (!Attributes) {
-            throw new Error("Ticket not found");
+            return null;
         }
 
         return Attributes; 
@@ -86,4 +86,36 @@ async function getTicketById(ticket_id){
     }
 }
 
-module.exports = { createTicket, getTicketsByStatus, updateTicket, getTicketById}
+async function getAllTickets() {
+    const command = new ScanCommand({ TableName });
+
+    try {
+        const { Items } = await documentClient.send(command);
+        logger.info(`Retrieved all tickets: ${Items.length}`);
+        return Items;
+    } catch (err) {
+        logger.error(`Error fetching all tickets: ${err.message}`);
+        throw new Error("DAO: Failed to retrieve tickets");
+    }
+}
+
+async function getTicketsByEmployee(author){
+
+    const command = new QueryCommand({
+        TableName,
+        IndexName: "author-index",
+        KeyConditionExpression: "author = :a",
+        ExpressionAttributeValues: { ":a": author }
+    });
+
+    try{
+        const data = await documentClient.send(command);
+        logger.info(`DAO: Retrieved ${Items.length} tickets for author ${author}`);
+        return data.Items;
+    }catch(err){
+        logger.error(`DAO: Error fetching tickets for author: ${author}: ${err.message}`);
+        throw new Error(`DAO: Failed to fetch tickets for author ${author}: ${err.message}`);
+    }
+}
+
+module.exports = { createTicket, getTicketsByStatus, updateTicket, getTicketById, getAllTickets, getTicketsByEmployee}

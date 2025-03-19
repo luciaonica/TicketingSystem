@@ -58,4 +58,18 @@ async function processTicket(ticket_id, status, resolver) {
     }
 }
 
-module.exports = { createTicket, getPendingTickets, processTicket }
+async function getAllTickets(user) {
+    try {
+        if (user.role_id === "Manager") {
+            return await ticketDAO.getAllTickets();
+        } else {
+            return await ticketDAO.getTicketsByEmployee(user.user_id);            
+        }
+    } catch (err) {
+        logger.error(`Service: Error retrieving tickets: ${err.message}`);
+        throw err;
+    }
+   
+}
+
+module.exports = { createTicket, getPendingTickets, processTicket, getAllTickets }

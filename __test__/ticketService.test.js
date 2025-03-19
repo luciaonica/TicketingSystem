@@ -130,4 +130,53 @@ describe("ticketService", () => {
         });
     });
 
+    describe("getAllTickets", () => {
+    
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+    
+        test("should return all tickets when user is a Manager", async () => {
+            const mockTickets = [
+                { ticket_id: "1", author: "user1", status: "Pending" },
+                { ticket_id: "2", author: "user2", status: "Approved" }
+            ];
+            const user = { role_id: "Manager", user_id: "manager1" };
+    
+            ticketDAO.getAllTickets.mockResolvedValue(mockTickets);
+    
+            const result = await ticketService.getAllTickets(user);
+            
+            expect(result).toEqual(mockTickets);
+            expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
+            expect(ticketDAO.getTicketsByEmployee).not.toHaveBeenCalled();
+        });
+    
+        test("should return tickets for a specific employee", async () => {
+            const mockTickets = [
+                { ticket_id: "3", author: "employee1", status: "Pending" }
+            ];
+            const user = { role_id: "Employee", user_id: "employee1" };
+    
+            ticketDAO.getTicketsByEmployee.mockResolvedValue(mockTickets);
+    
+            const result = await ticketService.getAllTickets(user);
+            
+            expect(result).toEqual(mockTickets);
+            expect(ticketDAO.getTicketsByEmployee).toHaveBeenCalledWith(user.user_id);
+            expect(ticketDAO.getTicketsByEmployee).toHaveBeenCalledTimes(1);
+            expect(ticketDAO.getAllTickets).not.toHaveBeenCalled();
+        });
+    
+        test("should throw an error if ticket retrieval fails", async () => {
+            const user = { role_id: "Manager", user_id: "manager1" };
+    
+            ticketDAO.getAllTickets.mockRejectedValue(new Error("Database Error"));
+    
+            await expect(ticketService.getAllTickets(user)).rejects.toThrow("Database Error");
+    
+            expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
+        });
+    });
+
 });
