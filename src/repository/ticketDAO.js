@@ -110,7 +110,7 @@ async function getTicketsByEmployee(author){
 
     try{
         const data = await documentClient.send(command);
-        logger.info(`DAO: Retrieved ${Items.length} tickets for author ${author}`);
+        logger.info(`DAO: Retrieved ${data.Items.length} tickets for author ${author}`);
         return data.Items;
     }catch(err){
         logger.error(`DAO: Error fetching tickets for author: ${author}: ${err.message}`);
@@ -118,4 +118,34 @@ async function getTicketsByEmployee(author){
     }
 }
 
-module.exports = { createTicket, getTicketsByStatus, updateTicket, getTicketById, getAllTickets, getTicketsByEmployee}
+async function updateTicketImage(ticket_id, image) {
+    const ticket = await getTicketById(ticket_id);
+
+    if(!ticket) {
+        throw new Error ("ticket not found");
+    }
+    
+    const command = new UpdateCommand({
+        TableName,
+        Key: { ticket_id },  
+        UpdateExpression: "SET #i = :image",
+        ExpressionAttributeNames: {
+            "#i": "image"
+        },
+        ExpressionAttributeValues: {
+            ":image": image
+        },
+        ReturnValues: "ALL_NEW"  
+    });
+
+    try {
+        const { Attributes } = await documentClient.send(command);
+        
+        return {ticket_id: Attributes.ticket_id, image: Attributes.image}; 
+    } catch (err) {
+        console.error("Error updating ticket image:", err);
+        return null;
+    }
+}
+
+module.exports = { createTicket, getTicketsByStatus, updateTicket, getTicketById, getAllTickets, getTicketsByEmployee, updateTicketImage}

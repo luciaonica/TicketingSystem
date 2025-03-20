@@ -12,7 +12,7 @@ const ticketController = require("./src/controller/ticketController");
 app.use(loggerMiddleware);
 app.use(express.json());
 
-app.use('/', userController);
+app.use('/users', userController);
 app.use('/tickets', ticketController);
 
 function loggerMiddleware(req, res, next){

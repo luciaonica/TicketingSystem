@@ -56,8 +56,22 @@ async function validateLogin(username, password) {
     return user;
 }
 
+async function updateUserPicture(user_id, fileData) {
+    
+    try {
+        const {filePath, fileUrl} = fileData;
+        
+        const updatedUser = await userDAO.updateUserPicture(user_id, filePath);
+        
+        return {filePath, fileUrl, updatedUser};
+    } catch (err) {
+        logger.info("Error updating user picture ", err.message);
+        throw err;
+    }    
+}
+
 function validateUser(user) {
     return user.username.length > 4 && user.password.length > 4;
 }
 
-module.exports = {postUser, validateLogin}
+module.exports = {postUser, validateLogin, updateUserPicture}

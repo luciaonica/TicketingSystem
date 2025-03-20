@@ -68,8 +68,21 @@ async function getAllTickets(user) {
     } catch (err) {
         logger.error(`Service: Error retrieving tickets: ${err.message}`);
         throw err;
-    }
-   
+    }   
 }
 
-module.exports = { createTicket, getPendingTickets, processTicket, getAllTickets }
+async function updateTicketImage(ticket_id, fileData) {
+    
+    try {
+        const {filePath, fileUrl} = fileData;
+        
+        const updatedTicket = await ticketDAO.updateTicketImage(ticket_id, filePath);
+        
+        return {filePath, fileUrl, updatedTicket};
+    } catch (err) {
+        logger.info("Error updating ticket image ", err.message);
+        throw err;
+    }    
+}
+
+module.exports = { createTicket, getPendingTickets, processTicket, getAllTickets, updateTicketImage }

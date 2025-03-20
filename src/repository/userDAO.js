@@ -1,5 +1,5 @@
 const {DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, PutCommand, QueryCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, PutCommand, QueryCommand, UpdateCommand, GetCommand } = require("@aws-sdk/lib-dynamodb");
 const {logger} = require("../util/logger");
 
 const client = new DynamoDBClient({region: "us-east-2"});
@@ -48,4 +48,53 @@ async function getUserByUsername(username) {
     }
 }
 
-module.exports = {postUser, getUserByUsername}
+async function updateUserPicture(user_id, image) {
+    const user = await getUserById(user_id);
+
+    if(!user) {
+        throw new Error ("user not found");
+    }
+    
+    const command = new UpdateCommand({
+        TableName,
+        Key: { user_id },  
+        UpdateExpression: "SET #i = :image",
+        ExpressionAttributeNames: {
+            "#i": "image"
+        },
+        ExpressionAttributeValues: {
+            ":image": image
+        },
+        ReturnValues: "ALL_NEW"  
+    });
+
+    try {
+        const { Attributes } = await documentClient.send(command);
+        
+        return {user_id: Attributes.user_id, image: Attributes.image}; 
+    } catch (err) {
+        console.error("Error updating user image:", err);
+        return null;
+    }
+}
+
+async function getUserById(user_id){
+    const getCommand = new GetCommand({
+        TableName,
+        Key: { user_id: user_id } 
+    });
+
+    try {
+        const response = await documentClient.send(getCommand);
+        if(!response.Item) {
+            throw new Error("User not found")
+        }
+
+        return response.Item;  
+    } catch (err) {
+        logger.error(`Error fetching user ${user_id}: ${err.message}`);
+        throw new Error(`DAO: Failed to fetch ticket ${user_id} - ${err.message}`);
+    }
+}
+
+module.exports = {postUser, getUserByUsername, updateUserPicture}

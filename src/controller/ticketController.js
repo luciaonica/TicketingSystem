@@ -3,7 +3,28 @@ const jwt = require("jsonwebtoken");
 const ticketService = require("../service/ticketService");
 const {logger} = require("../util/logger");
 
+const multer = require('multer');
+
+const {uploadTicketPictureToS3} = require("../util/s3Uploader");
+const storage = multer.memoryStorage();
+const upload = multer({storage: storage});
+
 const router = express.Router();
+
+router.post("/images", authenticateToken, upload.single('file'), async (req, res) => {
+    try {
+
+        const ticket_id = req.body.ticket_id;
+
+        // Upload file using the utility function
+        const uploadResult = await uploadTicketPictureToS3(req.file, ticket_id);
+        const result = await ticketService.updateTicketImage(ticket_id, uploadResult);
+
+        res.status(200).json({ message: "File uploaded successfully", fileUrl: uploadResult.fileUrl, ticket: result.updatedTicket });
+    } catch (error) {
+        res.status(500).json({ error: "File upload failed", details: error.message });
+    }
+})
 
 router.post("/", authenticateToken, validateTicketMiddleware, async (req,res) => {
     
